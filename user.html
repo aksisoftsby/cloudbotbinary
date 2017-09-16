@@ -54,7 +54,7 @@
           cloudbottitle.innerHTML = "Tes Token ...";
           ws = new WebSocket("wss://ws.binaryws.com/websockets/v3?app_id=8270");
           ws.onopen = function () {
-            this.send(JSON.stringify({authorize: getParameterByName(c[0])}));
+            this.send(JSON.stringify({authorize: getParameterByName(c[2])}));
           }
           ws.onmessage = function (msg) {
             var data = JSON.parse(msg.data);
