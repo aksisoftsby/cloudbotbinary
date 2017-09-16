@@ -25,16 +25,51 @@
     </div>
     <script src="/assets/javascript/anchor-js/anchor.min.js"></script>
     <script type="text/javascript">
-function getParameterByName(a) {
-  a = a.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  var b = new RegExp("[\\?&]" + a + "=([^&#]*)"), c = b.exec(location.search);
-  return null === c ? "" : decodeURIComponent(c[1].replace(/\+/g, " "))
-}
-anchors.add();
-console.log(getParameterByName('acct1'));
-console.log(getParameterByName('acct2'));
-console.log(getParameterByName('token1'));
-console.log(getParameterByName('token2'));
+      anchors.add();
+      var cloudbottitle = document.getElementById("#cloudbotbinary");
+      function getParameterByName(a) {
+        a = a.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var b = new RegExp("[\\?&]" + a + "=([^&#]*)"), c = b.exec(location.search);
+        return null === c ? "" : decodeURIComponent(c[1].replace(/\+/g, " "))
+      }
+      function storename(name, val) {
+        localStorage.setItem(name, val);
+      }
+      function retryrefresh() {
+        cloudbottitle.innerHTML = "Server not connected, retry login.";
+        setTimeout(function () {
+          window.location = 'https://oauth.binary.com/oauth2/authorize?app_id=8270';
+        }, 2000);
+      }
+      c = ['acct1', 'acct2', 'token1', 'token2'];
+      for (a in c) {
+        storename(c[a], getParameterByName(c[a]));
+      }
+      // testing login
+      setTimeout(function () {
+        cloudbottitle.innerHTML = "Tes Token ...";
+        ws = new WebSocket("wss://ws.binaryws.com/websockets/v3?app_id=8270");
+        ws.onopen = function () {
+          this.send(JSON.stringify({authorize: getParameterByName(c[0])}));
+        }
+        ws.onmessage = function () {
+          var data = JSON.parse(msg.data);
+          if (data.authorize) {
+            storename("authorize", data.authorize);
+            // go to login
+            cloudbottitle.innerHTML = "Login success, Welcome " + data.authorize.fullname + " ...";
+          }
+          if (data.error) {
+            cloudbottitle.innerHTML = data.error.message;
+          }
+        }
+        ws.onclose = function () {
+          retryrefresh();
+        }
+        ws.onerror = function () {
+          retryrefresh();
+        }
+      }, 1000);
     </script>
   </body>
 </html>
